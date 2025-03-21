@@ -1,21 +1,57 @@
-import { useState, useEffect } from 'react';
-import MetaballsBackground from './components/MetaballsBackground';
-import HintSection from './components/HintSection';
-import InteractiveFeedback from './components/InteractiveFeedback';
-import SolutionSection from './components/SolutionSection';
+import { useState, useEffect } from "react";
+import { fetchLeetCodeProblemDetails, extractProblemSlug } from "./api/fetch-content";
+import MetaballsBackground from "./components/MetaballsBackground";
+import HintSection from "./components/HintSection";
+import InteractiveFeedback from "./components/InteractiveFeedback";
+import SolutionSection from "./components/SolutionSection";
 
 const LeetCodeTracker = () => {
   const [solutions, setSolutions] = useState([]);
-  const [performance, setPerformance] = useState('Good');
+  const [performance, setPerformance] = useState("Good");
   const [isLoading, setIsLoading] = useState(true);
   const [currentQuestion, setCurrentQuestion] = useState({
-    number: "#217",
-    title: "Contains Duplicate",
-    difficulty: "Easy"
+    number: "",
+    title: "",
+    difficulty: "",
   });
-  const [extractedCode, setExtractedCode] = useState('');
+  const [extractedCode, setExtractedCode] = useState("");
   const [showSolution, setShowSolution] = useState(false);
-  
+
+  // Fetch current LeetCode problem details
+  useEffect(() => {
+    const fetchCurrentProblem = async () => {
+      try {
+        // Get the current tab URL
+        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+        const url = tab.url;
+
+        // Extract the problem slug from the URL
+        const problemSlug = extractProblemSlug(url);
+
+        // Fetch problem details from the GraphQL API
+        const problemDetails = await fetchLeetCodeProblemDetails(problemSlug);
+
+        // Update the current question state
+        setCurrentQuestion({
+          number: `#${problemDetails.questionId}`,
+          title: problemDetails.title,
+          difficulty: problemDetails.difficulty,
+        });
+      } catch (error) {
+        console.error("Error fetching problem details:", error);
+        setCurrentQuestion({
+          number: "Error",
+          title: "Error",
+          difficulty: "Error",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCurrentProblem();
+  }, []);
+
   // Mock data for demonstration - in real extension, fetch from storage
   useEffect(() => {
     setTimeout(() => {
@@ -25,21 +61,20 @@ const LeetCodeTracker = () => {
         { id: 3, title: 'Longest Substring Without Repeating Characters', difficulty: 'Medium', timeComplexity: 'O(n)', spaceComplexity: 'O(min(m,n))', date: '2025-03-19' },
       ];
       setSolutions(mockData);
-      setIsLoading(false);
     }, 1000);
   }, []);
 
   // Calculate performance based on solutions
   useEffect(() => {
     if (solutions.length === 0) return;
-    
+
     const difficultyScore = solutions.reduce((acc, sol) => {
       if (sol.difficulty === 'Easy') return acc + 1;
       if (sol.difficulty === 'Medium') return acc + 2;
       if (sol.difficulty === 'Hard') return acc + 3;
       return acc;
     }, 0);
-    
+
     if (difficultyScore > 5) {
       setPerformance('Excellent');
     } else if (difficultyScore > 3) {
@@ -51,7 +86,6 @@ const LeetCodeTracker = () => {
 
   // Extract code from current LeetCode page
   const extractCode = () => {
-    // In the actual extension, this would use chrome extension APIs
     // Mock extracting code for demo purposes
     const mockCode = `function containsDuplicate(nums) {
   const set = new Set();
@@ -61,9 +95,9 @@ const LeetCodeTracker = () => {
   }
   return false;
 }`;
-    
+
     setExtractedCode(mockCode);
-    
+
     // Add to solutions
     const newSolution = {
       id: solutions.length + 1,
@@ -73,7 +107,7 @@ const LeetCodeTracker = () => {
       spaceComplexity: 'O(n)',
       date: new Date().toISOString().split('T')[0]
     };
-    
+
     setSolutions([...solutions, newSolution]);
   };
 
@@ -84,7 +118,7 @@ const LeetCodeTracker = () => {
 
   // Get difficulty color class
   const getDifficultyColor = (difficulty) => {
-    switch(difficulty) {
+    switch (difficulty) {
       case 'Easy': return 'text-green-400 bg-green-900/40';
       case 'Medium': return 'text-yellow-400 bg-yellow-900/40';
       case 'Hard': return 'text-red-400 bg-red-900/40';
@@ -98,7 +132,7 @@ const LeetCodeTracker = () => {
       <div className="absolute inset-0 overflow-hidden">
         <MetaballsBackground />
       </div>
-      
+
       {/* Content container with glass effect */}
       <div className="relative z-10 flex flex-col h-full overflow-y-auto">
         <div className="space-y-3 flex-grow overflow-auto pb-16">
@@ -110,7 +144,7 @@ const LeetCodeTracker = () => {
               </h1>
             </div>
           </div>
-          
+
           {/* Current Question */}
           <div className="bg-black/40 backdrop-blur-xl rounded-xl p-3 border border-zinc-800/60 shadow-lg">
             <div className="flex flex-col">
@@ -126,26 +160,26 @@ const LeetCodeTracker = () => {
               </div>
             </div>
           </div>
-          
+
           {/* Hints Section */}
           <HintSection currentQuestion={currentQuestion} />
-          
+
           {/* Interactive Feedback */}
-          <InteractiveFeedback 
-            extractedCode={extractedCode} 
-            performance={performance} 
+          <InteractiveFeedback
+            extractedCode={extractedCode}
+            performance={performance}
             onExtractCode={extractCode}
           />
-          
+
           {/* Solution Section - Only visible after clicking "Give Up" */}
           {showSolution && (
             <SolutionSection currentQuestion={currentQuestion} />
           )}
         </div>
-        
+
         {/* Bottom Actions - Fixed at bottom */}
         <div className="flex space-x-2 absolute bottom-5 left-5 right-5">
-          <button 
+          <button
             onClick={extractCode}
             className="flex-1 px-3 py-2 bg-purple-600/80 hover:bg-purple-700/80 rounded-lg text-sm font-medium backdrop-blur-sm transition-colors flex items-center justify-center"
           >
@@ -154,7 +188,7 @@ const LeetCodeTracker = () => {
             </svg>
             Extract Code
           </button>
-          <button 
+          <button
             onClick={handleGiveUp}
             className={`flex-1 px-3 py-2 ${showSolution ? 'bg-zinc-600/80 hover:bg-zinc-700/80' : 'bg-red-600/80 hover:bg-red-700/80'} rounded-lg text-sm font-medium backdrop-blur-sm transition-colors flex items-center justify-center`}
             disabled={showSolution}
