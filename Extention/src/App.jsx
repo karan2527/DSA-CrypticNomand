@@ -1,9 +1,18 @@
 import { useState, useEffect } from 'react';
+import MetaballsBackground from './components/MetaballsBackground';
+import HintSection from './components/HintSection';
+import InteractiveFeedback from './components/InteractiveFeedback';
 
 const LeetCodeTracker = () => {
   const [solutions, setSolutions] = useState([]);
   const [performance, setPerformance] = useState('Good');
   const [isLoading, setIsLoading] = useState(true);
+  const [currentQuestion, setCurrentQuestion] = useState({
+    number: "#217",
+    title: "Contains Duplicate",
+    difficulty: "Easy"
+  });
+  const [extractedCode, setExtractedCode] = useState('');
   
   // Mock data for demonstration - in real extension, fetch from storage
   useEffect(() => {
@@ -22,8 +31,6 @@ const LeetCodeTracker = () => {
   useEffect(() => {
     if (solutions.length === 0) return;
     
-    // Simple algorithm to determine performance level
-    // In real extension, this would be more sophisticated
     const difficultyScore = solutions.reduce((acc, sol) => {
       if (sol.difficulty === 'Easy') return acc + 1;
       if (sol.difficulty === 'Medium') return acc + 2;
@@ -40,126 +47,117 @@ const LeetCodeTracker = () => {
     }
   }, [solutions]);
 
-  // Get performance image based on rating
-  const getPerformanceImage = () => {
-    switch (performance) {
-      case 'Excellent':
-        return 'https://via.placeholder.com/150?text=Trophy';
-      case 'Good':
-        return 'https://via.placeholder.com/150?text=Thumbs+Up';
-      case 'Can Be Improved':
-        return 'https://via.placeholder.com/150?text=Growth';
-      default:
-        return 'https://via.placeholder.com/150?text=Neutral';
-    }
-  };
-
   // Extract code from current LeetCode page
   const extractCode = () => {
-    // In the actual extension, this would use chrome.tabs API to extract code
-    // For demo purposes, we'll just add a mock solution
+    // In the actual extension, this would use chrome extension APIs
+    // Mock extracting code for demo purposes
+    const mockCode = `function containsDuplicate(nums) {
+  const set = new Set();
+  for (const num of nums) {
+    if (set.has(num)) return true;
+    set.add(num);
+  }
+  return false;
+}`;
+    
+    setExtractedCode(mockCode);
+    
+    // Add to solutions
     const newSolution = {
       id: solutions.length + 1,
-      title: 'Merge Two Sorted Lists',
-      difficulty: 'Easy',
-      timeComplexity: 'O(n+m)',
-      spaceComplexity: 'O(1)',
+      title: currentQuestion.title,
+      difficulty: currentQuestion.difficulty,
+      timeComplexity: 'O(n)',
+      spaceComplexity: 'O(n)',
       date: new Date().toISOString().split('T')[0]
     };
     
     setSolutions([...solutions, newSolution]);
   };
 
-  // Redirect to detailed analysis page
+  // View detailed analysis
   const viewDetailedAnalysis = () => {
-    // In actual extension, this would open a new tab
-    // chrome.tabs.create({ url: chrome.runtime.getURL("analysis.html") });
     alert("This would open the detailed analysis page");
   };
 
+  // Get difficulty color class
+  const getDifficultyColor = (difficulty) => {
+    switch(difficulty) {
+      case 'Easy': return 'text-green-400 bg-green-900/40';
+      case 'Medium': return 'text-yellow-400 bg-yellow-900/40';
+      case 'Hard': return 'text-red-400 bg-red-900/40';
+      default: return 'text-blue-400 bg-blue-900/40';
+    }
+  };
+
   return (
-    <div className="w-80 bg-zinc-900 text-zinc-100 p-4 rounded-lg shadow-lg font-sans">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-xl font-bold text-green-400">LeetCode Tracker</h1>
-        <div className="px-3 py-1 bg-zinc-800 rounded-full text-sm">
-          {solutions.length} Solutions
-        </div>
+    <div className="w-96 h-[600px] relative bg-zinc-900 text-zinc-100 p-5 overflow-hidden font-sans">
+      {/* Metaballs Background */}
+      <div className="absolute inset-0 overflow-hidden">
+        <MetaballsBackground />
       </div>
       
-      {/* Performance Summary */}
-      <div className="bg-zinc-800 rounded-lg p-4 mb-4">
-        <div className="text-center mb-2">
-          <span className="text-zinc-400 text-sm">Your performance is</span>
-          <h2 className={`text-2xl font-bold ${
-            performance === 'Excellent' ? 'text-green-400' : 
-            performance === 'Good' ? 'text-blue-400' : 
-            'text-yellow-400'
-          }`}>
-            {performance}
-          </h2>
+      {/* Content container with glass effect */}
+      <div className="relative z-10 flex flex-col h-full">
+        {/* Team Name Header */}
+        <div className="bg-black/40 backdrop-blur-xl rounded-xl p-3 mb-3 border border-zinc-800/60 shadow-lg">
+          <div className="flex items-center justify-between">
+            <h1 className="text-xl font-bold bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent">
+              Cryptic Nomads
+            </h1>
+            <div className="px-3 py-1 bg-zinc-800/80 rounded-full text-sm">
+              {solutions.length} Solutions
+            </div>
+          </div>
         </div>
         
-        <div className="flex justify-center my-3">
-          <img 
-            src={getPerformanceImage()} 
-            alt={`${performance} performance`} 
-            className="w-16 h-16 rounded-full bg-zinc-700 p-1"
-          />
+        {/* Current Question */}
+        <div className="bg-black/40 backdrop-blur-xl rounded-xl p-3 mb-3 border border-zinc-800/60 shadow-lg">
+          <div className="flex flex-col">
+            <div className="flex justify-between items-center">
+              <span className="text-zinc-400 text-sm">Current Question</span>
+              <span className={`text-xs px-2 py-0.5 rounded-full ${getDifficultyColor(currentQuestion.difficulty)}`}>
+                {currentQuestion.difficulty}
+              </span>
+            </div>
+            <div className="flex items-baseline mt-1 space-x-2">
+              <span className="text-purple-400 font-mono">{currentQuestion.number}</span>
+              <h2 className="text-lg font-semibold text-white">{currentQuestion.title}</h2>
+            </div>
+          </div>
         </div>
-      </div>
-      
-      {/* Actions */}
-      <div className="grid grid-cols-2 gap-3 mb-4">
-        <button 
-          onClick={extractCode}
-          className="px-3 py-2 bg-green-600 hover:bg-green-700 rounded-lg text-sm font-medium transition-colors flex items-center justify-center"
-        >
-          <svg className="w-4 h-4 mr-1" fill="none" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-          </svg>
-          Extract Code
-        </button>
-        <button 
-          onClick={viewDetailedAnalysis}
-          className="px-3 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm font-medium transition-colors flex items-center justify-center"
-        >
-          <svg className="w-4 h-4 mr-1" fill="none" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-          </svg>
-          View Analysis
-        </button>
-      </div>
-      
-      {/* Recent Solutions */}
-      <div>
-        <h3 className="text-sm text-zinc-400 mb-2">Recent Solutions</h3>
-        {isLoading ? (
-          <div className="flex justify-center py-4">
-            <div className="animate-spin h-5 w-5 border-2 border-zinc-500 rounded-full border-t-transparent"></div>
-          </div>
-        ) : (
-          <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
-            {solutions.slice(-3).reverse().map((solution) => (
-              <div key={solution.id} className="bg-zinc-800 rounded-lg p-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="font-medium truncate">{solution.title}</span>
-                  <span className={`text-xs px-1.5 py-0.5 rounded ${
-                    solution.difficulty === 'Easy' ? 'bg-green-900 text-green-300' :
-                    solution.difficulty === 'Medium' ? 'bg-yellow-900 text-yellow-300' :
-                    'bg-red-900 text-red-300'
-                  }`}>
-                    {solution.difficulty}
-                  </span>
-                </div>
-                <div className="text-xs text-zinc-400 mt-1 flex justify-between">
-                  <span>Time: {solution.timeComplexity}</span>
-                  <span>Space: {solution.spaceComplexity}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+        
+        {/* Hints Section */}
+        <HintSection currentQuestion={currentQuestion} />
+        
+        {/* Interactive Feedback */}
+        <InteractiveFeedback 
+          extractedCode={extractedCode} 
+          performance={performance} 
+          onExtractCode={extractCode}
+        />
+        
+        {/* Bottom Actions */}
+        <div className="flex space-x-2 mt-auto">
+          <button 
+            onClick={extractCode}
+            className="flex-1 px-3 py-2 bg-purple-600/80 hover:bg-purple-700/80 rounded-lg text-sm font-medium backdrop-blur-sm transition-colors flex items-center justify-center"
+          >
+            <svg className="w-4 h-4 mr-1" fill="none" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+            Extract Code
+          </button>
+          <button 
+            onClick={viewDetailedAnalysis}
+            className="flex-1 px-3 py-2 bg-cyan-600/80 hover:bg-cyan-700/80 rounded-lg text-sm font-medium backdrop-blur-sm transition-colors flex items-center justify-center"
+          >
+            <svg className="w-4 h-4 mr-1" fill="none" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+            View Analysis
+          </button>
+        </div>
       </div>
     </div>
   );
