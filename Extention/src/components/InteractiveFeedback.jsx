@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 const InteractiveFeedback = ({ extractedCode, performance, onExtractCode }) => {
   const [feedback, setFeedback] = useState('');
   const [showCode, setShowCode] = useState(false);
+  const [motivationalMessage, setMotivationalMessage] = useState('');
   
   // Generate feedback based on extracted code
   useEffect(() => {
@@ -19,6 +20,24 @@ const InteractiveFeedback = ({ extractedCode, performance, onExtractCode }) => {
     setFeedback(feedbackOptions[Math.floor(Math.random() * feedbackOptions.length)]);
     setShowCode(true);
   }, [extractedCode]);
+  
+  // Set random motivational message on component mount
+  useEffect(() => {
+    const messages = [
+      "Ready to tackle today's coding challenge? You've got this!",
+      "Remember: every bug you fix makes you a better developer.",
+      "Consistency is key to mastering algorithms. Keep going!",
+      "Think step by step. Break down the problem before coding.",
+      "Don't compare your progress to others. Focus on your growth.",
+      "The best way to learn is by doing. Dive into the challenge!",
+      "Stuck? Try explaining the problem out loud - it works wonders.",
+      "Great coders are patient problem-solvers. Take your time.",
+      "One algorithm at a time leads to lasting knowledge.",
+      "Remember to test edge cases in your solution!"
+    ];
+    
+    setMotivationalMessage(messages[Math.floor(Math.random() * messages.length)]);
+  }, []);
   
   // Get performance icon
   const getPerformanceIcon = () => {
@@ -69,15 +88,14 @@ const InteractiveFeedback = ({ extractedCode, performance, onExtractCode }) => {
       
       {!extractedCode ? (
         <div className="flex flex-col items-center justify-center bg-zinc-800/40 rounded-lg p-4 flex-grow border border-zinc-700/30">
-          <p className="text-sm text-zinc-400 text-center mb-3">
-            Extract code from your current LeetCode problem to get instant feedback
-          </p>
-          <button 
-            onClick={onExtractCode}
-            className="px-3 py-1.5 bg-purple-600/80 hover:bg-purple-700/80 rounded-lg text-sm font-medium transition-colors"
-          >
-            Extract Now
-          </button>
+          <div className="flex items-start px-2">
+            <svg className="w-5 h-5 text-purple-400 mt-0.5 mr-2 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+            </svg>
+            <p className="text-sm text-zinc-300">
+              {motivationalMessage}
+            </p>
+          </div>
         </div>
       ) : (
         <div className="flex flex-col space-y-2 flex-grow">

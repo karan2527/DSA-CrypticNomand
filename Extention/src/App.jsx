@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import MetaballsBackground from './components/MetaballsBackground';
 import HintSection from './components/HintSection';
 import InteractiveFeedback from './components/InteractiveFeedback';
+import SolutionSection from './components/SolutionSection';
 
 const LeetCodeTracker = () => {
   const [solutions, setSolutions] = useState([]);
@@ -13,6 +14,7 @@ const LeetCodeTracker = () => {
     difficulty: "Easy"
   });
   const [extractedCode, setExtractedCode] = useState('');
+  const [showSolution, setShowSolution] = useState(false);
   
   // Mock data for demonstration - in real extension, fetch from storage
   useEffect(() => {
@@ -75,9 +77,9 @@ const LeetCodeTracker = () => {
     setSolutions([...solutions, newSolution]);
   };
 
-  // View detailed analysis
-  const viewDetailedAnalysis = () => {
-    alert("This would open the detailed analysis page");
+  // Handle give up action
+  const handleGiveUp = () => {
+    setShowSolution(true);
   };
 
   // Get difficulty color class
@@ -98,47 +100,51 @@ const LeetCodeTracker = () => {
       </div>
       
       {/* Content container with glass effect */}
-      <div className="relative z-10 flex flex-col h-full">
-        {/* Team Name Header */}
-        <div className="bg-black/40 backdrop-blur-xl rounded-xl p-3 mb-3 border border-zinc-800/60 shadow-lg">
-          <div className="flex items-center justify-between">
-            <h1 className="text-xl font-bold bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent">
-              Cryptic Nomads
-            </h1>
-            <div className="px-3 py-1 bg-zinc-800/80 rounded-full text-sm">
-              {solutions.length} Solutions
+      <div className="relative z-10 flex flex-col h-full overflow-y-auto">
+        <div className="space-y-3 flex-grow overflow-auto pb-16">
+          {/* Team Name Header */}
+          <div className="bg-black/40 backdrop-blur-xl rounded-xl p-3 border border-zinc-800/60 shadow-lg">
+            <div className="flex items-center justify-center">
+              <h1 className="text-xl font-bold bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent">
+                Cryptic Nomads
+              </h1>
             </div>
           </div>
-        </div>
-        
-        {/* Current Question */}
-        <div className="bg-black/40 backdrop-blur-xl rounded-xl p-3 mb-3 border border-zinc-800/60 shadow-lg">
-          <div className="flex flex-col">
-            <div className="flex justify-between items-center">
-              <span className="text-zinc-400 text-sm">Current Question</span>
-              <span className={`text-xs px-2 py-0.5 rounded-full ${getDifficultyColor(currentQuestion.difficulty)}`}>
-                {currentQuestion.difficulty}
-              </span>
-            </div>
-            <div className="flex items-baseline mt-1 space-x-2">
-              <span className="text-purple-400 font-mono">{currentQuestion.number}</span>
-              <h2 className="text-lg font-semibold text-white">{currentQuestion.title}</h2>
+          
+          {/* Current Question */}
+          <div className="bg-black/40 backdrop-blur-xl rounded-xl p-3 border border-zinc-800/60 shadow-lg">
+            <div className="flex flex-col">
+              <div className="flex justify-between items-center">
+                <span className="text-zinc-400 text-sm">Current Question</span>
+                <span className={`text-xs px-2 py-0.5 rounded-full ${getDifficultyColor(currentQuestion.difficulty)}`}>
+                  {currentQuestion.difficulty}
+                </span>
+              </div>
+              <div className="flex items-baseline mt-1 space-x-2">
+                <span className="text-purple-400 font-mono">{currentQuestion.number}</span>
+                <h2 className="text-lg font-semibold text-white">{currentQuestion.title}</h2>
+              </div>
             </div>
           </div>
+          
+          {/* Hints Section */}
+          <HintSection currentQuestion={currentQuestion} />
+          
+          {/* Interactive Feedback */}
+          <InteractiveFeedback 
+            extractedCode={extractedCode} 
+            performance={performance} 
+            onExtractCode={extractCode}
+          />
+          
+          {/* Solution Section - Only visible after clicking "Give Up" */}
+          {showSolution && (
+            <SolutionSection currentQuestion={currentQuestion} />
+          )}
         </div>
         
-        {/* Hints Section */}
-        <HintSection currentQuestion={currentQuestion} />
-        
-        {/* Interactive Feedback */}
-        <InteractiveFeedback 
-          extractedCode={extractedCode} 
-          performance={performance} 
-          onExtractCode={extractCode}
-        />
-        
-        {/* Bottom Actions */}
-        <div className="flex space-x-2 mt-auto">
+        {/* Bottom Actions - Fixed at bottom */}
+        <div className="flex space-x-2 absolute bottom-5 left-5 right-5">
           <button 
             onClick={extractCode}
             className="flex-1 px-3 py-2 bg-purple-600/80 hover:bg-purple-700/80 rounded-lg text-sm font-medium backdrop-blur-sm transition-colors flex items-center justify-center"
@@ -149,13 +155,14 @@ const LeetCodeTracker = () => {
             Extract Code
           </button>
           <button 
-            onClick={viewDetailedAnalysis}
-            className="flex-1 px-3 py-2 bg-cyan-600/80 hover:bg-cyan-700/80 rounded-lg text-sm font-medium backdrop-blur-sm transition-colors flex items-center justify-center"
+            onClick={handleGiveUp}
+            className={`flex-1 px-3 py-2 ${showSolution ? 'bg-zinc-600/80 hover:bg-zinc-700/80' : 'bg-red-600/80 hover:bg-red-700/80'} rounded-lg text-sm font-medium backdrop-blur-sm transition-colors flex items-center justify-center`}
+            disabled={showSolution}
           >
             <svg className="w-4 h-4 mr-1" fill="none" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            View Analysis
+            Give up!
           </button>
         </div>
       </div>
