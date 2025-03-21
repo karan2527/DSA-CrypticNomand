@@ -74,7 +74,7 @@ const HintSection = ({ currentQuestion }) => {
           {hints.length > 0 ? (
             hints.map((hint, index) => (
               <div key={index} className="bg-zinc-800/40 p-2 rounded text-xs text-zinc-300 border border-zinc-700/30">
-                <span className="text-purple-400 mr-1">Hint {index + 1}:</span> {hint}
+                <span className="text-purple-400 mr-1">Hint:</span> {hint}
               </div>
             ))
           ) : (
