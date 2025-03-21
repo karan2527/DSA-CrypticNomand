@@ -2,11 +2,11 @@
 	"manifest_version": 3,
 	"name": "LeetCode Code Extractor React",
 	"version": "1.0",
-	"permissions": ["scripting", "storage", "activeTab"],
-	"host_permissions": ["https://leetcode.com/*"],
-	"background": {
-	  "service_worker": "background.js"
-	},
+	"permissions": ["scripting", "storage", "activeTab", "tabs"],
+	"host_permissions": [
+	  "https://leetcode.com/*",
+	  "https://algolistapi.vercel.app/*"
+	],
 	"action": {
 	  "default_popup": "index.html"
 	},
