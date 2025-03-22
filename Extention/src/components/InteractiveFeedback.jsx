@@ -1,26 +1,91 @@
 import { useState, useEffect } from 'react';
 
-const InteractiveFeedback = ({ extractedCode, performance, onExtractCode }) => {
+const InteractiveFeedback = ({ performance, onExtractCode }) => {
   const [feedback, setFeedback] = useState('');
-  const [showCode, setShowCode] = useState(false);
+  const [extractedCode, setExtractedCode] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const [motivationalMessage, setMotivationalMessage] = useState('');
-  
-  // Generate feedback based on extracted code
+
+  // Extract code from the LeetCode page
+  const extractCodeFromLeetCode = async () => {
+    setIsLoading(true);
+    try {
+      // Get the current tab's URL
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      const url = tab.url;
+
+      // Ensure the tab is a LeetCode problem page
+      if (!url.includes('leetcode.com/problems/')) {
+        throw new Error('This is not a valid LeetCode problem page.');
+      }
+
+      // Execute a script in the context of the LeetCode page to extract the code
+      const code = await chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        func: () => {
+          const codeElement = document.querySelector('.monaco-editor textarea');
+          return codeElement ? codeElement.value : null;
+        },
+      });
+
+      if (code && code[0]?.result) {
+        setExtractedCode(code[0].result);
+        fetchFeedback(code[0].result); // Send the code to the AI for feedback
+      } else {
+        throw new Error('No code found on the page.');
+      }
+    } catch (error) {
+      console.error('Error extracting code:', error);
+      setFeedback('Failed to extract code from the page. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Fetch feedback from the AI
+  const fetchFeedback = async (code) => {
+    try {
+      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer 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', // Replace with your Groq API key
+        },
+        body: JSON.stringify({
+          model: 'llama-3.3-70b-versatile',
+          messages: [
+            {
+              role: 'system',
+              content: 'You are a helpful coding assistant. Provide constructive feedback on the given code without revealing the solution directly. Focus on improvements, best practices, and potential optimizations. Give the solution in plaintext. Do not use bold, italics or any kind of formatting. Only use punctuations and proper case letters. Do not write it in points, give the answers within 10 lines.',
+            },
+            {
+              role: 'user',
+              content: `Here is my code for the LeetCode problem. Please provide feedback:\n\n${code}`,
+            },
+          ],
+          max_tokens: 150, // Limit the response length
+        }),
+      });
+
+      const data = await response.json();
+      const feedback = data.choices[0]?.message?.content?.trim();
+
+      if (feedback) {
+        setFeedback(feedback); // Set the feedback from the API response
+      } else {
+        setFeedback('No feedback available. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error fetching feedback:', error);
+      setFeedback('Failed to fetch feedback. Please try again.');
+    }
+  };
+
+  // Extract code and fetch feedback when the component mounts
   useEffect(() => {
-    if (!extractedCode) return;
-    
-    // In a real implementation, this could analyze the code
-    // For now, we'll use mock feedback
-    const feedbackOptions = [
-      "Great use of a Set for O(1) lookups! Time complexity is optimal.",
-      "Consider using a more descriptive variable name than 'set'.",
-      "Your solution is correct and efficient. Good job!"
-    ];
-    
-    setFeedback(feedbackOptions[Math.floor(Math.random() * feedbackOptions.length)]);
-    setShowCode(true);
-  }, [extractedCode]);
-  
+    extractCodeFromLeetCode();
+  }, []);
+
   // Set random motivational message on component mount
   useEffect(() => {
     const messages = [
@@ -35,10 +100,10 @@ const InteractiveFeedback = ({ extractedCode, performance, onExtractCode }) => {
       "One algorithm at a time leads to lasting knowledge.",
       "Remember to test edge cases in your solution!"
     ];
-    
+
     setMotivationalMessage(messages[Math.floor(Math.random() * messages.length)]);
   }, []);
-  
+
   // Get performance icon
   const getPerformanceIcon = () => {
     switch (performance) {
@@ -69,7 +134,7 @@ const InteractiveFeedback = ({ extractedCode, performance, onExtractCode }) => {
         );
     }
   };
-  
+
   return (
     <div className="bg-black/40 backdrop-blur-xl rounded-xl p-3 mb-3 border border-zinc-800/60 shadow-lg flex-grow overflow-hidden flex flex-col">
       <div className="flex justify-between items-center mb-2">
@@ -86,18 +151,11 @@ const InteractiveFeedback = ({ extractedCode, performance, onExtractCode }) => {
         </div>
       </div>
       
-      {!extractedCode ? (
+      {isLoading ? (
         <div className="flex flex-col items-center justify-center bg-zinc-800/40 rounded-lg p-4 flex-grow border border-zinc-700/30">
-          <div className="flex items-start px-2">
-            <svg className="w-5 h-5 text-purple-400 mt-0.5 mr-2 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-            </svg>
-            <p className="text-sm text-zinc-300">
-              {motivationalMessage}
-            </p>
-          </div>
+          <p className="text-sm text-zinc-300">Analyzing your code...</p>
         </div>
-      ) : (
+      ) : extractedCode ? (
         <div className="flex flex-col space-y-2 flex-grow">
           {/* Code Preview */}
           <div className="bg-zinc-800/40 rounded-lg p-2 border border-zinc-700/30 flex-grow overflow-auto">
@@ -117,6 +175,17 @@ const InteractiveFeedback = ({ extractedCode, performance, onExtractCode }) => {
               </div>
             </div>
           )}
+        </div>
+      ) : (
+        <div className="flex flex-col items-center justify-center bg-zinc-800/40 rounded-lg p-4 flex-grow border border-zinc-700/30">
+          <div className="flex items-start px-2">
+            <svg className="w-5 h-5 text-purple-400 mt-0.5 mr-2 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+            </svg>
+            <p className="text-sm text-zinc-300">
+              {motivationalMessage}
+            </p>
+          </div>
         </div>
       )}
     </div>
