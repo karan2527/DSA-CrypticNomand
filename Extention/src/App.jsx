@@ -180,15 +180,6 @@ const LeetCodeTracker = () => {
         {/* Bottom Actions - Fixed at bottom */}
         <div className="flex space-x-2 absolute bottom-5 left-5 right-5">
           <button
-            onClick={extractCode}
-            className="flex-1 px-3 py-2 bg-purple-600/80 hover:bg-purple-700/80 rounded-lg text-sm font-medium backdrop-blur-sm transition-colors flex items-center justify-center"
-          >
-            <svg className="w-4 h-4 mr-1" fill="none" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-            </svg>
-            Extract Code
-          </button>
-          <button
             onClick={handleGiveUp}
             className={`flex-1 px-3 py-2 ${showSolution ? 'bg-zinc-600/80 hover:bg-zinc-700/80' : 'bg-red-600/80 hover:bg-red-700/80'} rounded-lg text-sm font-medium backdrop-blur-sm transition-colors flex items-center justify-center`}
             disabled={showSolution}
