@@ -178,17 +178,30 @@ const LeetCodeTracker = () => {
         </div>
 
         {/* Bottom Actions - Fixed at bottom */}
-        <div className="flex space-x-2 absolute bottom-5 left-5 right-5">
-          <button
-            onClick={handleGiveUp}
-            className={`flex-1 px-3 py-2 ${showSolution ? 'bg-zinc-600/80 hover:bg-zinc-700/80' : 'bg-red-600/80 hover:bg-red-700/80'} rounded-lg text-sm font-medium backdrop-blur-sm transition-colors flex items-center justify-center`}
-            disabled={showSolution}
+        <div className="flex flex-col space-y-2 absolute bottom-5 left-5 right-5">
+          <div className="flex space-x-2">
+            <button
+              onClick={handleGiveUp}
+              className={`flex-1 px-3 py-2 ${showSolution ? 'bg-zinc-600/80 hover:bg-zinc-700/80' : 'bg-red-600/80 hover:bg-red-700/80'} rounded-lg text-sm font-medium backdrop-blur-sm transition-colors flex items-center justify-center`}
+              disabled={showSolution}
+            >
+              <svg className="w-4 h-4 mr-1" fill="none" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Give up!
+            </button>
+          </div>
+          <a 
+            href="http://localhost:8081/" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="flex-1 px-3 py-2 bg-gradient-to-r from-purple-600/80 to-blue-600/80 hover:from-purple-700/80 hover:to-blue-700/80 rounded-lg text-sm font-medium backdrop-blur-sm transition-colors flex items-center justify-center"
           >
             <svg className="w-4 h-4 mr-1" fill="none" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
-            Give up!
-          </button>
+            Explore CODEQUEST
+          </a>
         </div>
       </div>
     </div>
